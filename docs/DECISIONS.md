@@ -146,3 +146,8 @@ happens, not reconstructed afterward.
   keeping in mind for the walkthrough video: hitting the app after any
   idle period may need a throwaway first request to warm the compute
   before recording.
+- Verifying the PATCH→GET round trip (Checkpoint 3's actual stated
+  criterion) meant overwriting the seed document's real content with test
+  data on the production branch. Restored it directly afterward to the
+  original seeded title/content — reviewers should see the intended demo
+  document, not leftover verification noise.
