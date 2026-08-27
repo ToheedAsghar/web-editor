@@ -71,3 +71,17 @@ happens, not reconstructed afterward.
   pooled — same simplification as `DATABASE_URL`/`DIRECT_URL` on production:
   avoids a fourth env var, and the integration test's connection volume is
   low enough that pooling doesn't matter there.
+
+## Task 4: Auth library
+
+- `next build` warns that `jose` (imported only in `auth-edge.ts`, for
+  `SignJWT`/`jwtVerify`) pulls in `CompressionStream`/`DecompressionStream`
+  via its JWE (encryption) code path, flagged as unsupported in the Edge
+  Runtime. This is a known, widely-reported `jose`+Next.js false positive:
+  those code paths belong to JWE's `zip` option, which this code never
+  invokes (only JWS signing/verification is used), and `CompressionStream`
+  is a standard Web Streams API available in the Edge Runtime regardless —
+  Next's static analyzer flags the import conservatively, not actual
+  unsupported usage. Not fixed, since there's nothing to fix — flagging it
+  here so it isn't mistaken for a real problem, and it gets a real-world
+  check at Task 9 when the middleware runs live on Vercel's edge network.
