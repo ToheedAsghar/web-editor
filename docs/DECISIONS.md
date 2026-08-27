@@ -34,3 +34,12 @@ happens, not reconstructed afterward.
   artifact of the harness (from an earlier misuse of a scheduling tool that
   didn't belong in this workflow), not project code. Added `.claude/` to
   `.gitignore` rather than committing it.
+
+## Task 2: Push to GitHub
+
+- `git push` over HTTPS failed: `git config`'s configured credential helper
+  (`git-credential-libsecret`) points at a binary that doesn't exist on this
+  sandbox (`No such file or directory`), so there was no way to supply HTTPS
+  credentials. Switched the remote to SSH (`git@github.com:...`) instead —
+  an SSH key was already present and pre-authenticated to the account, so
+  this worked with no further setup.
