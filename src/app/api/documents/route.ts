@@ -2,13 +2,8 @@ import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { listDocumentsForUser } from "@/lib/documents";
 import { createDocumentSchema } from "@/lib/validation/documents";
-
-const LIST_SELECT = {
-  id: true,
-  title: true,
-  updatedAt: true,
-} as const;
 
 export async function GET(req: Request) {
   const user = await getCurrentUser(req);
@@ -16,19 +11,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [owned, shared] = await Promise.all([
-    prisma.document.findMany({
-      where: { ownerId: user.id },
-      select: LIST_SELECT,
-      orderBy: { updatedAt: "desc" },
-    }),
-    prisma.document.findMany({
-      where: { shares: { some: { userId: user.id } } },
-      select: LIST_SELECT,
-      orderBy: { updatedAt: "desc" },
-    }),
-  ]);
-
+  const { owned, shared } = await listDocumentsForUser(user.id);
   return NextResponse.json({ owned, shared });
 }
 
