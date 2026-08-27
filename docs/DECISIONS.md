@@ -107,3 +107,42 @@ happens, not reconstructed afterward.
   in `documents/[id]/route.ts`, reran the test, watched it fail
   (`expected 200 to be 403`), then restored the check and confirmed it
   passes again. The test is a real assertion, not a tautology.
+
+## Tasks 15-16: Editor + autosave
+
+- `npm install` resolved TipTap to **v3.30.5**, not v2 — the spec's stack
+  decision ("StarterKit + `@tiptap/extension-underline`") was written
+  against v2's behavior. Checked the installed package's own type
+  definitions rather than assume: TipTap v3's `StarterKit` now bundles an
+  `underline` mark by default, which would collide with the separately
+  added `Underline` extension (duplicate-extension conflict). Fixed with
+  `StarterKit.configure({ underline: false })`, keeping both packages as
+  the spec named them.
+- Also confirmed via `@tiptap/react`'s type definitions (not memory) that
+  `useEditor` needs `immediatelyRender: false` for SSR frameworks — without
+  it, TipTap renders immediately during Next's server render and produces
+  a client hydration mismatch. Set it explicitly.
+- **Real bug caught by actually running the app, not just typecheck/build**:
+  with `immediatelyRender: false`, `useEditor` returns `null` until the
+  client mounts. My first version had `if (!editor) return null` gating the
+  *entire* component return, meaning the whole page — including the title
+  input, completely unrelated to the editor being ready — rendered blank
+  during SSR and the first client paint. Confirmed via `curl` against a
+  running dev server (typecheck/build both stayed green through this the
+  whole time, since it's a runtime/UX issue, not a type error). Fixed by
+  only gating the toolbar/`EditorContent` on `editor` being non-null, with
+  a "Loading editor…" placeholder — the title bar now renders immediately.
+- No headless browser tool is available in this sandbox (checked; only a
+  static-content `WebFetch` exists, no MCP browser/devtools tool). Verified
+  what curl can prove — SSR HTML, no server exceptions, correct
+  access-control behavior (200 with a generic message for `carol`, who has
+  no access, never a distinguishable 404) — but did not click through the
+  live toolbar/typing interactions in a real browser. Flagged to the user
+  rather than claimed full UI verification.
+- Observed one transient "Can't reach database server" error from Prisma
+  immediately after a slow (4.8s) login request — consistent with a Neon
+  compute cold-starting and the connection pool not yet being stable a
+  moment later. Retried and it worked cleanly. Not a code bug, but worth
+  keeping in mind for the walkthrough video: hitting the app after any
+  idle period may need a throwaway first request to warm the compute
+  before recording.
