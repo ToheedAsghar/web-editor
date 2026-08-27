@@ -85,3 +85,7 @@ happens, not reconstructed afterward.
   unsupported usage. Not fixed, since there's nothing to fix — flagging it
   here so it isn't mistaken for a real problem, and it gets a real-world
   check at Task 9 when the middleware runs live on Vercel's edge network.
+  **Confirmed benign at Task 9**: middleware correctly redirected an
+  unauthenticated `/dashboard` request (307 → `/login`) and passed through
+  an authenticated one, live on Vercel — the warning never manifested as a
+  runtime failure.
