@@ -89,3 +89,21 @@ happens, not reconstructed afterward.
   unauthenticated `/dashboard` request (307 → `/login`) and passed through
   an authenticated one, live on Vercel — the warning never manifested as a
   runtime failure.
+
+## Task 13: Integration test
+
+- First run of the access-control test timed out at Vitest's default 5000ms
+  — the test branch's compute had scaled to zero (idle since Task 3's
+  migration) and needed a cold start. Bumped `testTimeout` to 20000ms in
+  `vitest.config.ts` rather than trying to keep the branch warm; a cold
+  Neon branch is the normal case for CI, not a one-off fluke.
+- Wired `vitest.setup.ts` (via `dotenv` + a `testTimeout`/`setupFiles`
+  entry in `vitest.config.ts`) to override `process.env.DATABASE_URL =
+  process.env.TEST_DATABASE_URL` before any module loads — this makes the
+  app's own `src/lib/db.ts` Prisma singleton point at the test branch for
+  the whole test run, so the test and the route handler under test share
+  one client/connection instead of needing a second one.
+- Verified per instruction: temporarily commented out the `canView` check
+  in `documents/[id]/route.ts`, reran the test, watched it fail
+  (`expected 200 to be 403`), then restored the check and confirmed it
+  passes again. The test is a real assertion, not a tautology.
