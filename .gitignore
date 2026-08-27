@@ -26,10 +26,14 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
 .env*.local
 
 # vercel
 .vercel
+
+# claude code harness state (not project code)
+.claude/
 
 # typescript
 *.tsbuildinfo
